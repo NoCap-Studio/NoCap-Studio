@@ -32,6 +32,12 @@ interface EditorState {
   // Layers state
   canvasObjects: any[];
   setCanvasObjects: (objects: any[]) => void;
+  // Uploads state
+  uploads: string[];
+  addUpload: (url: string) => void;
+  removeUpload: (url: string) => void;
+  // Actions
+  clearCanvas: () => void;
 }
 
 export const useEditorStore = create<EditorState>((set, get) => ({
@@ -61,6 +67,46 @@ export const useEditorStore = create<EditorState>((set, get) => ({
   // Layers state
   canvasObjects: [],
   setCanvasObjects: (objects) => set({ canvasObjects: objects }),
+
+  // Uploads state
+  uploads: typeof window !== "undefined" ? JSON.parse(localStorage.getItem("nocap-uploads") || "[]") : [],
+  addUpload: (url) => {
+    const updatedUploads = [url, ...get().uploads];
+    set({ uploads: updatedUploads });
+    if (typeof window !== "undefined") {
+      localStorage.setItem("nocap-uploads", JSON.stringify(updatedUploads));
+    }
+  },
+  removeUpload: (url) => {
+    const updatedUploads = get().uploads.filter((u) => u !== url);
+    set({ uploads: updatedUploads });
+    if (typeof window !== "undefined") {
+      localStorage.setItem("nocap-uploads", JSON.stringify(updatedUploads));
+    }
+  },
+
+  clearCanvas: () => {
+    const { canvas, saveHistory } = get();
+    if (!canvas) return;
+
+    canvas.clear();
+    canvas.set("backgroundColor", "#ffffff");
+    canvas.renderAll();
+
+    set({
+      history: [],
+      historyIndex: -1,
+      canvasObjects: [],
+      selectedObjects: [],
+    });
+
+    if (typeof window !== "undefined") {
+      localStorage.removeItem("nocap-history");
+      localStorage.removeItem("nocap-history-index");
+    }
+
+    saveHistory();
+  },
 
   // Zoom logic
   zoom: 1,

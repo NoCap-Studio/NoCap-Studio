@@ -62,7 +62,13 @@
    npm install
    ```
 
-3. Start the development server:
+3. Set up environment variables:
+   Create a `.env.local` file in the `client` directory:
+   ```env
+   UPLOADTHING_TOKEN=your_uploadthing_token_here
+   ```
+
+4. Start the development server:
    ```bash
    npm run dev
    ```

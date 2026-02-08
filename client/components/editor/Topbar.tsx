@@ -1,13 +1,13 @@
 "use client";
 
 import { useEditorStore } from "@/store/editorStore";
-import { Undo2, Redo2 } from "lucide-react";
+import { Undo2, Redo2, Trash2 } from "lucide-react";
 
 import { useEffect, useState } from "react";
 
 export default function Topbar() {
   const [mounted, setMounted] = useState(false);
-  const { undo, redo, canUndo, canRedo } = useEditorStore();
+  const { undo, redo, canUndo, canRedo, clearCanvas } = useEditorStore();
 
   useEffect(() => {
     setMounted(true);
@@ -39,6 +39,20 @@ export default function Topbar() {
           title="Redo (Ctrl+Y)"
         >
           <Redo2 size={18} />
+        </button>
+
+        <div className="w-[1px] h-4 bg-neutral-800 mx-1" />
+
+        <button
+          onClick={() => {
+            if (confirm("Are you sure you want to clear the entire canvas? This will also wipe your undo history.")) {
+              clearCanvas();
+            }
+          }}
+          className="p-1.5 hover:bg-red-500/10 rounded-lg text-neutral-400 hover:text-red-400 transition-all"
+          title="Clear Canvas"
+        >
+          <Trash2 size={18} />
         </button>
       </div>
 

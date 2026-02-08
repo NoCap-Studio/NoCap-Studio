@@ -12,7 +12,8 @@ import {
     ChevronDown,
     Eye,
     EyeOff,
-    MousePointer2
+    MousePointer2,
+    Image as ImageIcon
 } from "lucide-react";
 
 export default function LayersPanel() {
@@ -26,6 +27,7 @@ export default function LayersPanel() {
             case "line": return <Minus size={14} className="rotate-45" />;
             case "circle": return <CircleIcon size={14} />;
             case "triangle": return <TriangleIcon size={14} />;
+            case "image": return <ImageIcon size={14} />;
             case "textbox":
             case "i-text": return <Type size={14} />;
             default: return <Layers size={14} />;
