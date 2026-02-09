@@ -18,9 +18,25 @@ export default function Topbar() {
 
   return (
     <header className="h-14 bg-neutral-900 border-b border-neutral-800 flex items-center px-6 justify-between shrink-0">
-      <div className="flex items-center gap-4">
-        <div className="w-8 h-8 bg-blue-600 rounded-lg flex items-center justify-center font-black text-white italic">NC</div>
-        <h1 className="font-bold text-lg tracking-tight">NoCap Studio</h1>
+      <div className="flex items-center gap-4 group cursor-pointer">
+        <div className="relative">
+          <div className="absolute inset-0 bg-blue-500/10 blur-2xl rounded-full group-hover:bg-blue-400/30 transition-all duration-500" />
+          <img
+            src="/logo.png"
+            alt="NoCap Studio Logo"
+            className="w-10 h-10 object-contain relative z-10 group-hover:scale-110 transition-transform duration-300 drop-shadow-lg"
+          />
+        </div>
+        <div className="flex flex-col select-none">
+          <h1 className="font-bold text-lg tracking-tight leading-none text-white drop-shadow-sm group-hover:text-blue-50 transition-colors">
+            NoCap
+          </h1>
+          <div className="flex items-center gap-1.5 mt-1.5 opacity-80 group-hover:opacity-100 transition-opacity">
+            <span className="text-[10px] font-black uppercase tracking-[0.3em] text-blue-500">
+              Studio
+            </span>
+          </div>
+        </div>
       </div>
 
       <div className="flex items-center bg-neutral-800/50 p-1 rounded-xl border border-neutral-800">

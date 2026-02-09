@@ -13,7 +13,8 @@ import {
     Eye,
     EyeOff,
     MousePointer2,
-    Image as ImageIcon
+    Image as ImageIcon,
+    Pencil
 } from "lucide-react";
 
 export default function LayersPanel() {
@@ -28,6 +29,7 @@ export default function LayersPanel() {
             case "circle": return <CircleIcon size={14} />;
             case "triangle": return <TriangleIcon size={14} />;
             case "image": return <ImageIcon size={14} />;
+            case "path": return <Pencil size={14} />;
             case "textbox":
             case "i-text": return <Type size={14} />;
             default: return <Layers size={14} />;

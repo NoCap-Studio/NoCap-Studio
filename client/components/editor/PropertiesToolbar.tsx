@@ -2,33 +2,57 @@
 
 import { useEditorStore } from "@/store/editorStore";
 import { useState, useEffect } from "react";
-import { Palette, Baseline, Type as TypeIcon, Trash2 } from "lucide-react";
+import { Palette, Baseline, Type as TypeIcon, Trash2, Brush } from "lucide-react";
 
 export default function PropertiesToolbar() {
-    const { canvas, selectedObjects, saveHistory } = useEditorStore();
+    const { canvas, selectedObjects, saveHistory, isDrawingMode } = useEditorStore();
     const [fill, setFill] = useState("#000000");
     const [fontSize, setFontSize] = useState("32");
     const [fontFamily, setFontFamily] = useState("Inter");
+    const [strokeWidth, setStrokeWidth] = useState("3");
 
-    // Sync state with selected object
+    // Sync state with selected object or brush
     useEffect(() => {
-        if (selectedObjects.length === 1) {
+        if (isDrawingMode && canvas?.freeDrawingBrush) {
+            setFill(canvas.freeDrawingBrush.color || "#000000");
+            setStrokeWidth(canvas.freeDrawingBrush.width?.toString() || "3");
+        } else if (selectedObjects.length === 1) {
             const obj = selectedObjects[0];
-            setFill(obj.get("fill") as string || "#000000");
+            const color = (obj.type === "path" ? obj.get("stroke") : obj.get("fill")) as string || "#000000";
+            setFill(color);
+
             if (obj.type === "textbox" || obj.type === "i-text") {
                 setFontSize(Math.round(obj.get("fontSize") as number).toString());
                 setFontFamily(obj.get("fontFamily") as string || "Inter");
             }
-        }
-    }, [selectedObjects]);
 
-    if (selectedObjects.length === 0) return null;
+            if (obj.type === "path") {
+                setStrokeWidth(obj.get("strokeWidth")?.toString() || "1");
+            }
+        }
+    }, [selectedObjects, isDrawingMode, canvas]);
+
+    if (selectedObjects.length === 0 && !isDrawingMode) return null;
 
     const updateProperty = (key: string, value: any) => {
         if (!canvas) return;
+
+        if (isDrawingMode && canvas.freeDrawingBrush) {
+            if (key === "fill" || key === "stroke") canvas.freeDrawingBrush.color = value;
+            if (key === "strokeWidth") canvas.freeDrawingBrush.width = value;
+            canvas.renderAll();
+            return;
+        }
+
         const activeObjects = canvas.getActiveObjects();
         activeObjects.forEach((obj) => {
-            obj.set(key as any, value);
+            if (obj.type === "path") {
+                if (key === "fill") obj.set("stroke", value);
+                else if (key === "strokeWidth") obj.set("strokeWidth", value);
+                else obj.set(key as any, value);
+            } else {
+                obj.set(key as any, value);
+            }
         });
         canvas.renderAll();
         saveHistory();
@@ -109,6 +133,24 @@ export default function PropertiesToolbar() {
                             className="w-12 bg-neutral-800 text-[11px] text-white rounded-lg px-2 py-1 outline-none border border-neutral-700 hover:border-neutral-500 transition-colors"
                         />
                     </div>
+                </div>
+            )}
+
+            {/* Brush Properties Section */}
+            {(isDrawingMode || selectedObjects.some(obj => obj.type === 'path')) && (
+                <div className="flex items-center gap-2 px-2 border-r border-neutral-800">
+                    <Brush size={14} className="text-neutral-500" />
+                    <input
+                        type="number"
+                        min="1"
+                        max="100"
+                        value={strokeWidth}
+                        onChange={(e) => {
+                            setStrokeWidth(e.target.value);
+                            updateProperty("strokeWidth", parseInt(e.target.value));
+                        }}
+                        className="w-12 bg-neutral-800 text-[11px] text-white rounded-lg px-2 py-1 outline-none border border-neutral-700 hover:border-neutral-500 transition-colors"
+                    />
                 </div>
             )}
 

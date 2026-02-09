@@ -9,11 +9,12 @@ import {
   Triangle as TriangleIcon,
   Minus,
   Download,
-  MousePointer2
+  MousePointer2,
+  Pencil
 } from "lucide-react";
 
 export default function Toolbar() {
-  const canvas = useEditorStore((s) => s.canvas);
+  const { canvas, isDrawingMode, setDrawingMode } = useEditorStore();
 
   const addText = () => {
     if (!canvas) return;
@@ -111,10 +112,20 @@ export default function Toolbar() {
     <div className="absolute -top-16 left-1/2 -translate-x-1/2 flex items-center gap-1 bg-neutral-900/80 backdrop-blur-md p-1.5 rounded-2xl border border-neutral-800 shadow-2xl">
       <div className="flex items-center gap-1 pr-1 border-r border-neutral-800">
         <button
-          className="p-2.5 rounded-xl bg-blue-600 text-white shadow-sm transition-all hover:bg-blue-500 active:scale-95"
+          onClick={() => setDrawingMode(false)}
+          className={`p-2.5 rounded-xl transition-all active:scale-95 ${!isDrawingMode ? "bg-blue-600 text-white shadow-sm" : "text-neutral-400 hover:text-white hover:bg-neutral-800"
+            }`}
           title="Select"
         >
           <MousePointer2 size={18} />
+        </button>
+        <button
+          onClick={() => setDrawingMode(true)}
+          className={`p-2.5 rounded-xl transition-all active:scale-95 ${isDrawingMode ? "bg-blue-600 text-white shadow-sm" : "text-neutral-400 hover:text-white hover:bg-neutral-800"
+            }`}
+          title="Draw"
+        >
+          <Pencil size={18} />
         </button>
       </div>
 

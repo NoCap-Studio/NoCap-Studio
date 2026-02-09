@@ -3,7 +3,7 @@
 import { createCanvas } from "@/lib/fabric";
 import { useEditorStore } from "@/store/editorStore";
 import { useEffect, useRef } from "react";
-import { Point } from "fabric";
+import { Point, PencilBrush } from "fabric";
 import Toolbar from "./Toolbar";
 import PropertiesToolbar from "./PropertiesToolbar";
 
@@ -61,6 +61,19 @@ export default function CanvasEditor() {
 
     canvas.on("mouse:wheel", handleMouseWheel);
 
+    // Explicitly initialize the PencilBrush for Fabric.js 7
+    const pencilBrush = new PencilBrush(canvas);
+    pencilBrush.width = 3;
+    pencilBrush.color = "#000000";
+    pencilBrush.decimate = 2; // Smooth out touch input
+    canvas.freeDrawingBrush = pencilBrush;
+
+    const handlePathCreated = () => {
+      handleSave();
+    };
+
+    canvas.on("path:created", handlePathCreated);
+
     const handleKeyDown = (e: KeyboardEvent) => {
       const { undo, redo, setZoom, zoom: currentZoom } = useEditorStore.getState();
 
@@ -89,6 +102,7 @@ export default function CanvasEditor() {
       canvas.off("object:modified", handleSave);
       canvas.off("object:removed", handleSave);
       canvas.off("mouse:wheel", handleMouseWheel);
+      canvas.off("path:created", handlePathCreated);
       window.removeEventListener("keydown", handleKeyDown);
       canvas.dispose();
     };
@@ -105,7 +119,7 @@ export default function CanvasEditor() {
           </div>
 
           {/* Canvas Wrapper for better centering and border */}
-          <div className="border border-neutral-800 relative z-10 overflow-hidden rounded-sm">
+          <div className="border border-neutral-800 relative z-10 overflow-hidden rounded-sm touch-none">
             <canvas ref={canvasRef} className="block" />
           </div>
 

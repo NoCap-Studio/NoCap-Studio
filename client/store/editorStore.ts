@@ -1,5 +1,5 @@
 import { create } from "zustand";
-import { Canvas, Point, FabricObject } from "fabric";
+import { Canvas, Point, FabricObject, PencilBrush } from "fabric";
 
 // Global Fabric config for custom properties
 FabricObject.customProperties = ["data"];
@@ -38,6 +38,9 @@ interface EditorState {
   removeUpload: (url: string) => void;
   // Actions
   clearCanvas: () => void;
+  // Drawing mode
+  isDrawingMode: boolean;
+  setDrawingMode: (isDrawing: boolean) => void;
 }
 
 export const useEditorStore = create<EditorState>((set, get) => ({
@@ -106,6 +109,30 @@ export const useEditorStore = create<EditorState>((set, get) => ({
     }
 
     saveHistory();
+  },
+
+  // Drawing mode
+  isDrawingMode: false,
+  setDrawingMode: (isDrawing) => {
+    const { canvas } = get();
+    if (canvas) {
+      if (isDrawing) {
+        canvas.discardActiveObject();
+        // Ensure brush exists if not already set
+        if (!canvas.freeDrawingBrush) {
+          canvas.freeDrawingBrush = new PencilBrush(canvas);
+        }
+        canvas.freeDrawingBrush.width = canvas.freeDrawingBrush.width || 3;
+        canvas.freeDrawingBrush.color = canvas.freeDrawingBrush.color || "#000000";
+        // Enable smoothing/decimation for touch-screen optimization
+        if (canvas.freeDrawingBrush instanceof PencilBrush) {
+          canvas.freeDrawingBrush.decimate = 2;
+        }
+      }
+      canvas.isDrawingMode = isDrawing;
+      canvas.renderAll();
+    }
+    set({ isDrawingMode: isDrawing });
   },
 
   // Zoom logic
