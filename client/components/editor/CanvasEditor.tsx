@@ -9,11 +9,13 @@ import PropertiesToolbar from "./PropertiesToolbar";
 
 export default function CanvasEditor() {
   const canvasRef = useRef<HTMLCanvasElement>(null);
-  const { setCanvas, zoom, setZoom, resetView, loadFromLocalStorage, setSelectedObjects } = useEditorStore();
+  const { setCanvas, zoom, setZoom, resetView, setSelectedObjects, loadProject, currentProjectId } = useEditorStore();
 
   useEffect(() => {
-    loadFromLocalStorage();
-  }, [loadFromLocalStorage]);
+    if (currentProjectId) {
+      loadProject(currentProjectId);
+    }
+  }, [currentProjectId, loadProject]);
 
   useEffect(() => {
     if (!canvasRef.current) return;
@@ -105,6 +107,7 @@ export default function CanvasEditor() {
       canvas.off("path:created", handlePathCreated);
       window.removeEventListener("keydown", handleKeyDown);
       canvas.dispose();
+      setCanvas(null);
     };
   }, [setCanvas]); // Only initialize once!
 

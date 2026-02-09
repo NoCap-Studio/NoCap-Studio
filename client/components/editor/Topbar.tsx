@@ -2,6 +2,7 @@
 
 import { useEditorStore } from "@/store/editorStore";
 import { Undo2, Redo2, Trash2 } from "lucide-react";
+import Link from "next/link";
 
 import { useEffect, useState } from "react";
 
@@ -18,7 +19,7 @@ export default function Topbar() {
 
   return (
     <header className="h-14 bg-neutral-900 border-b border-neutral-800 flex items-center px-6 justify-between shrink-0">
-      <div className="flex items-center gap-4 group cursor-pointer">
+      <Link href="/" className="flex items-center gap-4 group cursor-pointer transition-all active:scale-95">
         <div className="relative">
           <div className="absolute inset-0 bg-blue-500/10 blur-2xl rounded-full group-hover:bg-blue-400/30 transition-all duration-500" />
           <img
@@ -37,7 +38,7 @@ export default function Topbar() {
             </span>
           </div>
         </div>
-      </div>
+      </Link>
 
       <div className="flex items-center bg-neutral-800/50 p-1 rounded-xl border border-neutral-800">
         <button

@@ -1,5 +1,7 @@
 import { create } from "zustand";
 import { Canvas, Point, FabricObject, PencilBrush } from "fabric";
+import { updateProject, getProjectById } from "@/app/actions/projects";
+import { createAsset, deleteAsset, getAssets } from "@/app/actions/assets";
 
 // Global Fabric config for custom properties
 FabricObject.customProperties = ["data"];
@@ -12,7 +14,7 @@ declare module "fabric" {
 
 interface EditorState {
   canvas: Canvas | null;
-  setCanvas: (canvas: Canvas) => void;
+  setCanvas: (canvas: Canvas | null) => void;
   // Undo/Redo state
   history: string[];
   historyIndex: number;
@@ -26,38 +28,53 @@ interface EditorState {
   setZoom: (zoom: number) => void;
   resetView: () => void;
   loadFromLocalStorage: () => void;
+  loadProject: (id: string) => Promise<void>;
   // Selection state
   selectedObjects: any[];
   setSelectedObjects: (objects: any[]) => void;
   // Layers state
   canvasObjects: any[];
   setCanvasObjects: (objects: any[]) => void;
-  // Uploads state
-  uploads: string[];
-  addUpload: (url: string) => void;
-  removeUpload: (url: string) => void;
+  // Assets state
+  assets: any[];
+  setAssets: (assets: any[]) => void;
+  addAsset: (asset: any) => void;
+  removeAsset: (id: string) => void;
   // Actions
   clearCanvas: () => void;
   // Drawing mode
   isDrawingMode: boolean;
   setDrawingMode: (isDrawing: boolean) => void;
+  // Cloud Project state
+  currentProjectId: string | null;
+  setCurrentProjectId: (id: string | null) => void;
 }
 
+let saveTimeout: NodeJS.Timeout | null = null;
+
 export const useEditorStore = create<EditorState>((set, get) => ({
+  // Cloud Project state
+  currentProjectId: null,
+  setCurrentProjectId: (id) => set({ currentProjectId: id }),
+
   canvas: null,
   setCanvas: (canvas) => {
     set({ canvas });
+    if (!canvas) return;
 
     // Load from memory state if available
     const state = get();
     if (state.historyIndex >= 0 && state.history[state.historyIndex]) {
       const json = JSON.parse(state.history[state.historyIndex]);
       canvas.loadFromJSON(json).then(() => {
-        canvas.renderAll();
-        set({ canvasObjects: [...canvas.getObjects()].reverse() });
+        // SAFETY CHECK: Only render if this canvas is still the active one in the store
+        if (canvas === get().canvas) {
+          canvas.renderAll();
+          set({ canvasObjects: [...canvas.getObjects()].reverse() });
+        }
       });
-    } else {
-      // If no history, save the initial empty state
+    } else if (!state.currentProjectId) {
+      // If no history AND no cloud project, save the initial empty state
       state.saveHistory();
       set({ canvasObjects: [] });
     }
@@ -71,22 +88,11 @@ export const useEditorStore = create<EditorState>((set, get) => ({
   canvasObjects: [],
   setCanvasObjects: (objects) => set({ canvasObjects: objects }),
 
-  // Uploads state
-  uploads: typeof window !== "undefined" ? JSON.parse(localStorage.getItem("nocap-uploads") || "[]") : [],
-  addUpload: (url) => {
-    const updatedUploads = [url, ...get().uploads];
-    set({ uploads: updatedUploads });
-    if (typeof window !== "undefined") {
-      localStorage.setItem("nocap-uploads", JSON.stringify(updatedUploads));
-    }
-  },
-  removeUpload: (url) => {
-    const updatedUploads = get().uploads.filter((u) => u !== url);
-    set({ uploads: updatedUploads });
-    if (typeof window !== "undefined") {
-      localStorage.setItem("nocap-uploads", JSON.stringify(updatedUploads));
-    }
-  },
+  // Assets state
+  assets: [],
+  setAssets: (assets) => set({ assets }),
+  addAsset: (asset) => set((state) => ({ assets: [asset, ...state.assets] })),
+  removeAsset: (id) => set((state) => ({ assets: state.assets.filter((a) => a.id !== id) })),
 
   clearCanvas: () => {
     const { canvas, saveHistory } = get();
@@ -166,18 +172,32 @@ export const useEditorStore = create<EditorState>((set, get) => ({
   historyIndex: -1,
 
   loadFromLocalStorage: () => {
-    if (typeof window === "undefined") return;
-    try {
-      const history = JSON.parse(localStorage.getItem("nocap-history") || "[]");
-      const historyIndex = parseInt(localStorage.getItem("nocap-history-index") || "-1");
-      set({ history, historyIndex });
-    } catch (e) {
-      console.error("Failed to load history from localStorage", e);
+    // Legacy support disabled. Cloud projects take priority.
+  },
+
+  loadProject: async (id) => {
+    const project = await getProjectById(id);
+    if (!project) return;
+
+    const { canvas } = get();
+    const json = project.content;
+
+    set({
+      history: [json],
+      historyIndex: 0,
+      currentProjectId: id,
+    });
+
+    if (canvas) {
+      canvas.loadFromJSON(JSON.parse(json)).then(() => {
+        canvas.renderAll();
+        set({ canvasObjects: [...canvas.getObjects()].reverse() });
+      });
     }
   },
 
   saveHistory: () => {
-    const { canvas, history, historyIndex } = get();
+    const { canvas, history, historyIndex, currentProjectId } = get();
     if (!canvas) return;
 
     // Fabric.js 7: toJSON() no longer accepts arguments. 
@@ -197,6 +217,19 @@ export const useEditorStore = create<EditorState>((set, get) => ({
       history: updatedHistory,
       historyIndex: updatedIndex,
     });
+
+    // Cloud Sync (Debounced)
+    if (currentProjectId) {
+      if (saveTimeout) clearTimeout(saveTimeout);
+      saveTimeout = setTimeout(async () => {
+        try {
+          await updateProject(currentProjectId, { content: json });
+          console.log("Project saved to cloud.");
+        } catch (error) {
+          console.error("Cloud save failed:", error);
+        }
+      }, 2000); // 2 second debounce
+    }
 
     // Persist to local storage
     if (typeof window !== "undefined") {

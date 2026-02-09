@@ -4,19 +4,45 @@ import { useEditorStore } from "@/store/editorStore";
 import { FabricImage } from "fabric";
 import { Upload, Plus, Image as ImageIcon, Trash2, Loader2 } from "lucide-react";
 import { useUploadThing } from "@/lib/uploadthing";
-import { useRef, useState } from "react";
+import { useRef, useState, useEffect } from "react";
+import { getOrCreateDefaultUser } from "@/app/actions/user";
+import { getAssets, createAsset, deleteAsset as removeAssetFromDb } from "@/app/actions/assets";
 
 export default function UploadsPanel() {
-    const { canvas, uploads, addUpload, removeUpload, saveHistory } = useEditorStore();
+    const { canvas, assets, setAssets, addAsset, removeAsset, saveHistory } = useEditorStore();
     const [isUploading, setIsUploading] = useState(false);
+    const [userId, setUserId] = useState<string | null>(null);
     const fileInputRef = useRef<HTMLInputElement>(null);
 
-    const { startUpload } = useUploadThing("imageUploader", {
-        onClientUploadComplete: (res) => {
-            setIsUploading(false);
-            if (res && res[0]) {
-                addUpload(res[0].url);
+    useEffect(() => {
+        const init = async () => {
+            const user = await getOrCreateDefaultUser();
+            if (user) {
+                setUserId(user.id);
+                const dbAssets = await getAssets(user.id);
+                setAssets(dbAssets);
             }
+        };
+        init();
+    }, [setAssets]);
+
+    const { startUpload } = useUploadThing("imageUploader", {
+        onClientUploadComplete: async (res) => {
+            if (res && res[0] && userId) {
+                try {
+                    const newAsset = await createAsset({
+                        userId,
+                        url: res[0].url,
+                        name: res[0].name,
+                        size: res[0].size,
+                        type: res[0].type,
+                    });
+                    addAsset(newAsset);
+                } catch (error) {
+                    console.error("Failed to save asset metadata:", error);
+                }
+            }
+            setIsUploading(false);
         },
         onUploadError: (error) => {
             setIsUploading(false);
@@ -26,6 +52,15 @@ export default function UploadsPanel() {
             setIsUploading(true);
         },
     });
+
+    const handleDeleteAsset = async (id: string) => {
+        try {
+            await removeAssetFromDb(id);
+            removeAsset(id);
+        } catch (error) {
+            console.error("Failed to delete asset:", error);
+        }
+    };
 
     const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
         const files = e.target.files;
@@ -77,7 +112,7 @@ export default function UploadsPanel() {
                     />
                     <button
                         onClick={() => fileInputRef.current?.click()}
-                        disabled={isUploading}
+                        disabled={isUploading || !userId}
                         className="flex items-center justify-center p-2 bg-blue-600 hover:bg-blue-500 disabled:bg-neutral-800 disabled:text-neutral-500 text-white rounded-xl transition-all active:scale-95 shadow-lg shadow-blue-900/20 min-w-[36px]"
                         title="Upload Image"
                     >
@@ -91,25 +126,25 @@ export default function UploadsPanel() {
             </div>
 
             <div className="flex-1 overflow-y-auto custom-scrollbar pr-2">
-                {uploads.length === 0 ? (
+                {assets.length === 0 ? (
                     <div className="flex flex-col items-center justify-center py-12 text-neutral-600 text-center px-4 border-2 border-dashed border-neutral-800 rounded-3xl mt-2">
                         <ImageIcon size={32} className="mb-3 opacity-20" />
                         <p className="text-[11px] font-medium leading-tight">
-                            No uploads yet.<br />
+                            {userId ? "No uploads yet." : "Connecting to cloud..."}<br />
                             Click the + button to add one.
                         </p>
                     </div>
                 ) : (
                     <div className="grid grid-cols-2 gap-2 mt-2">
-                        {uploads.map((url, index) => (
+                        {assets.map((asset) => (
                             <div
-                                key={index}
+                                key={asset.id}
                                 className="group relative aspect-square bg-neutral-800 rounded-xl overflow-hidden border border-neutral-700 hover:border-blue-500/50 transition-all cursor-pointer shadow-lg"
-                                onClick={() => addImageToCanvas(url)}
+                                onClick={() => addImageToCanvas(asset.url)}
                             >
                                 <img
-                                    src={url}
-                                    alt={`Upload ${index}`}
+                                    src={asset.url}
+                                    alt={asset.name || "Upload"}
                                     className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500"
                                 />
                                 <div className="absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 transition-all duration-200 flex items-center justify-center">
@@ -120,7 +155,7 @@ export default function UploadsPanel() {
                                     <button
                                         onClick={(e) => {
                                             e.stopPropagation();
-                                            removeUpload(url);
+                                            handleDeleteAsset(asset.id);
                                         }}
                                         className="absolute top-1.5 right-1.5 p-1.5 bg-neutral-900/90 hover:bg-red-500 text-neutral-400 hover:text-white rounded-lg transition-all active:scale-90 border border-neutral-800 hover:border-red-400 shadow-lg"
                                         title="Delete Upload"
