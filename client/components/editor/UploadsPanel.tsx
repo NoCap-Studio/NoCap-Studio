@@ -4,34 +4,32 @@ import { useEditorStore } from "@/store/editorStore";
 import { FabricImage } from "fabric";
 import { Upload, Plus, Image as ImageIcon, Trash2, Loader2 } from "lucide-react";
 import { useUploadThing } from "@/lib/uploadthing";
-import { useRef, useState, useEffect } from "react";
-import { getOrCreateDefaultUser } from "@/app/actions/user";
+import { authClient } from "@/lib/auth-client";
 import { getAssets, createAsset, deleteAsset as removeAssetFromDb } from "@/app/actions/assets";
+import { useEffect, useRef, useState } from "react";
 
 export default function UploadsPanel() {
+    const { data: session } = authClient.useSession();
     const { canvas, assets, setAssets, addAsset, removeAsset, saveHistory } = useEditorStore();
     const [isUploading, setIsUploading] = useState(false);
-    const [userId, setUserId] = useState<string | null>(null);
     const fileInputRef = useRef<HTMLInputElement>(null);
 
     useEffect(() => {
-        const init = async () => {
-            const user = await getOrCreateDefaultUser();
-            if (user) {
-                setUserId(user.id);
-                const dbAssets = await getAssets(user.id);
+        if (session) {
+            const fetchAssets = async () => {
+                const dbAssets = await getAssets(session.user.id);
                 setAssets(dbAssets);
-            }
-        };
-        init();
-    }, [setAssets]);
+            };
+            fetchAssets();
+        }
+    }, [session, setAssets]);
 
     const { startUpload } = useUploadThing("imageUploader", {
         onClientUploadComplete: async (res) => {
-            if (res && res[0] && userId) {
+            if (res && res[0] && session) {
                 try {
                     const newAsset = await createAsset({
-                        userId,
+                        userId: session.user.id,
                         url: res[0].url,
                         name: res[0].name,
                         size: res[0].size,
@@ -112,7 +110,7 @@ export default function UploadsPanel() {
                     />
                     <button
                         onClick={() => fileInputRef.current?.click()}
-                        disabled={isUploading || !userId}
+                        disabled={isUploading || !session}
                         className="flex items-center justify-center p-2 bg-blue-600 hover:bg-blue-500 disabled:bg-neutral-800 disabled:text-neutral-500 text-white rounded-xl transition-all active:scale-95 shadow-lg shadow-blue-900/20 min-w-[36px]"
                         title="Upload Image"
                     >
@@ -130,7 +128,7 @@ export default function UploadsPanel() {
                     <div className="flex flex-col items-center justify-center py-12 text-neutral-600 text-center px-4 border-2 border-dashed border-neutral-800 rounded-3xl mt-2">
                         <ImageIcon size={32} className="mb-3 opacity-20" />
                         <p className="text-[11px] font-medium leading-tight">
-                            {userId ? "No uploads yet." : "Connecting to cloud..."}<br />
+                            {session ? "No uploads yet." : "Connecting to cloud..."}<br />
                             Click the + button to add one.
                         </p>
                     </div>

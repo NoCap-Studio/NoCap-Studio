@@ -6,25 +6,49 @@ import ProjectCard from "@/components/dashboard/ProjectCard";
 import { Sparkles, Layout } from "lucide-react";
 import { useEffect, useState } from "react";
 import { getProjects } from "@/app/actions/projects";
-import { getOrCreateDefaultUser } from "@/app/actions/user";
+import { authClient } from "@/lib/auth-client";
+import { useRouter } from "next/navigation";
 
 export default function LibraryPage() {
+  const { data: session, isPending } = authClient.useSession();
   const [projects, setProjects] = useState<any[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
-  const [user, setUser] = useState<any>(null);
+  const [isLoadingProjects, setIsLoadingProjects] = useState(true);
+  const router = useRouter();
 
   useEffect(() => {
-    const init = async () => {
-      const dbUser = await getOrCreateDefaultUser();
-      if (dbUser) {
-        setUser(dbUser);
-        const dbProjects = await getProjects(dbUser.id);
-        setProjects(dbProjects);
-      }
-      setIsLoading(false);
-    };
-    init();
-  }, []);
+    if (!isPending && !session) {
+      router.push("/auth");
+      return;
+    }
+
+    if (session) {
+      const fetchProjects = async () => {
+        setIsLoadingProjects(true);
+        try {
+          const dbProjects = await getProjects(session.user.id);
+          setProjects(dbProjects);
+        } catch (error) {
+          console.error("Failed to fetch projects:", error);
+        } finally {
+          setIsLoadingProjects(false);
+        }
+      };
+      fetchProjects();
+    }
+  }, [session, isPending, router]);
+
+  if (isPending) {
+    return (
+      <div className="min-h-screen bg-[#0a0a0a] flex items-center justify-center">
+        <div className="flex flex-col items-center gap-4">
+          <div className="w-12 h-12 border-4 border-blue-500/20 border-t-blue-500 rounded-full animate-spin" />
+          <p className="text-neutral-500 font-bold text-xs uppercase tracking-widest">Loading Session...</p>
+        </div>
+      </div>
+    );
+  }
+
+  if (!session) return null;
 
   return (
     <main className="min-h-screen bg-[#0a0a0a] flex flex-col">
@@ -36,7 +60,7 @@ export default function LibraryPage() {
           <div className="flex items-center justify-between mb-8">
             <div>
               <h2 className="text-3xl font-black text-white tracking-tight flex items-center gap-3">
-                Welcome back, {user?.name?.split(' ')[0] || "Designer"} <Sparkles className="text-yellow-500" size={24} />
+                Welcome back, {session.user.name?.split(' ')[0] || "Designer"} <Sparkles className="text-yellow-500" size={24} />
               </h2>
               <p className="text-neutral-500 mt-2 font-medium">Ready to start another masterpiece?</p>
             </div>
@@ -48,8 +72,8 @@ export default function LibraryPage() {
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-            <NewProjectCard userId={user?.id} />
-            {isLoading ? (
+            <NewProjectCard userId={session.user.id} />
+            {isLoadingProjects ? (
               [1, 2, 3].map(i => (
                 <div key={i} className="h-[280px] bg-neutral-900/50 rounded-3xl animate-pulse border border-neutral-800" />
               ))
