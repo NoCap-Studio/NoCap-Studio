@@ -1,54 +1,27 @@
-"use client";
-
 import DashboardHeader from "@/components/dashboard/DashboardHeader";
 import NewProjectCard from "@/components/dashboard/NewProjectCard";
 import ProjectCard from "@/components/dashboard/ProjectCard";
 import { Sparkles, Layout } from "lucide-react";
-import { useEffect, useState } from "react";
 import { getProjects } from "@/app/actions/projects";
-import { authClient } from "@/lib/auth-client";
-import { useRouter } from "next/navigation";
+import { auth } from "@/lib/auth";
+import { headers } from "next/headers";
+import { redirect } from "next/navigation";
 
-export default function LibraryPage() {
-  const { data: session, isPending } = authClient.useSession();
-  const [projects, setProjects] = useState<any[]>([]);
-  const [isLoadingProjects, setIsLoadingProjects] = useState(true);
-  const router = useRouter();
+export default async function LibraryPage() {
+  const session = await auth.api.getSession({
+    headers: await headers()
+  });
 
-  useEffect(() => {
-    if (!isPending && !session) {
-      router.push("/auth");
-      return;
-    }
-
-    if (session) {
-      const fetchProjects = async () => {
-        setIsLoadingProjects(true);
-        try {
-          const dbProjects = await getProjects(session.user.id);
-          setProjects(dbProjects);
-        } catch (error) {
-          console.error("Failed to fetch projects:", error);
-        } finally {
-          setIsLoadingProjects(false);
-        }
-      };
-      fetchProjects();
-    }
-  }, [session, isPending, router]);
-
-  if (isPending) {
-    return (
-      <div className="min-h-screen bg-[#0a0a0a] flex items-center justify-center">
-        <div className="flex flex-col items-center gap-4">
-          <div className="w-12 h-12 border-4 border-blue-500/20 border-t-blue-500 rounded-full animate-spin" />
-          <p className="text-neutral-500 font-bold text-xs uppercase tracking-widest">Loading Session...</p>
-        </div>
-      </div>
-    );
+  if (!session) {
+    redirect("/auth");
   }
 
-  if (!session) return null;
+  let projects: any[] = [];
+  try {
+    projects = await getProjects(session.user.id);
+  } catch (error) {
+    console.error("Failed to fetch projects server-side:", error);
+  }
 
   return (
     <main className="min-h-screen bg-[#0a0a0a] flex flex-col">
@@ -73,11 +46,7 @@ export default function LibraryPage() {
 
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
             <NewProjectCard userId={session.user.id} />
-            {isLoadingProjects ? (
-              [1, 2, 3].map(i => (
-                <div key={i} className="h-[280px] bg-neutral-900/50 rounded-3xl animate-pulse border border-neutral-800" />
-              ))
-            ) : projects.length > 0 ? (
+            {projects.length > 0 ? (
               projects.map((p) => (
                 <ProjectCard key={p.id} id={p.id} name={p.name} updatedAt={new Date(p.updatedAt).toLocaleDateString()} thumbnail={p.thumbnail} />
               ))

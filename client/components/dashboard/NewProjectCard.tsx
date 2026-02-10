@@ -1,3 +1,5 @@
+"use client";
+
 import { Plus, Loader2 } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { createProject } from "@/app/actions/projects";
