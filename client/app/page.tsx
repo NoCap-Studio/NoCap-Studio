@@ -16,6 +16,11 @@ export default async function LibraryPage() {
     redirect("/auth");
   }
 
+  // Redirect to onboarding if the user has no active organization
+  if (!session.session.activeOrganizationId) {
+    redirect("/onboarding");
+  }
+
   let projects: any[] = [];
   try {
     projects = await getProjects(session.user.id);

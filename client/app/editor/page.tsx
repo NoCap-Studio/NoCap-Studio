@@ -22,6 +22,11 @@ function EditorContent() {
       return;
     }
 
+    if (session && !session.session.activeOrganizationId) {
+      router.push("/onboarding");
+      return;
+    }
+
     if (id) {
       setCurrentProjectId(id);
     }

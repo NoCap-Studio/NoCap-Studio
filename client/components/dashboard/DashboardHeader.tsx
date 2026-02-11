@@ -6,22 +6,16 @@ import { useRouter } from "next/navigation";
 
 export default function DashboardHeader() {
     const { data: session, isPending } = authClient.useSession();
+    const { data: activeOrg } = authClient.useActiveOrganization();
     const router = useRouter();
 
     const handleLogout = async () => {
         await authClient.signOut();
-        router.push("/");
+        router.push("/auth");
     };
 
     const handleSignIn = () => {
-        // For now, redirect to a simple signup/login flow
-        // In a real app, this would open a modal or navigate to /auth
-        authClient.signIn.social({
-            provider: "github"
-        }).catch(() => {
-            // Fallback if github is not configured, just show the intent
-            console.log("Redirect to sign in");
-        });
+        router.push("/auth");
     };
 
     return (
@@ -64,10 +58,12 @@ export default function DashboardHeader() {
                             )}
                         </div>
                         <div className="hidden sm:flex flex-col">
-                            <span className="text-sm font-bold text-white group-hover:text-blue-400 transition-colors">
+                            <span className="text-sm font-bold text-white group-hover:text-blue-400 transition-colors max-w-[120px] truncate">
                                 {session.user.name}
                             </span>
-                            <span className="text-[10px] text-neutral-500 font-medium">Personal Workspace</span>
+                            <span className="text-[10px] text-neutral-500 font-medium max-w-[120px] truncate">
+                                {activeOrg?.name || "No Workplace"}
+                            </span>
                         </div>
 
                         {/* Dropdown Menu (Simplified for now) */}
