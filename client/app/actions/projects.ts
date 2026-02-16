@@ -3,10 +3,10 @@
 import prisma from "@/lib/prisma";
 import { revalidatePath } from "next/cache";
 
-export async function getProjects(userId: string) {
+export async function getProjects(organizationId: string) {
     try {
         return await prisma.project.findMany({
-            where: { userId },
+            where: { organizationId },
             orderBy: { updatedAt: "desc" },
         });
     } catch (error) {
@@ -26,11 +26,12 @@ export async function getProjectById(id: string) {
     }
 }
 
-export async function createProject(userId: string, name: string) {
+export async function createProject(userId: string, organizationId: string, name: string) {
     try {
         const project = await prisma.project.create({
             data: {
                 userId,
+                organizationId,
                 name,
                 content: JSON.stringify({ version: "5.3.0", objects: [] }), // Default empty canvas
             },

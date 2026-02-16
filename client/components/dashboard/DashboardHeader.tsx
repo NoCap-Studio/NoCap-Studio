@@ -1,6 +1,6 @@
 "use client";
 
-import { Search, Bell, CreditCard, ChevronDown, LogOut, User as UserIcon } from "lucide-react";
+import { Search, Bell, CreditCard, ChevronDown, LogOut, User as UserIcon, Users, Settings, Sparkles } from "lucide-react";
 import { authClient } from "@/lib/auth-client";
 import { useRouter } from "next/navigation";
 
@@ -50,7 +50,7 @@ export default function DashboardHeader() {
                     <div className="h-9 w-24 bg-neutral-800 animate-pulse rounded-lg" />
                 ) : session ? (
                     <div className="flex items-center gap-3 pl-6 border-l border-neutral-800 group relative">
-                        <div className="w-9 h-9 bg-gradient-to-br from-blue-500 to-indigo-600 rounded-full border border-white/20 shadow-lg flex items-center justify-center text-white font-bold text-sm overflow-hidden">
+                        <div className="w-9 h-9 bg-gradient-to-br from-blue-500 to-indigo-600 rounded-full border border-white/20 shadow-lg flex items-center justify-center text-white font-bold text-sm overflow-hidden active:scale-95 transition-transform">
                             {session.user.image ? (
                                 <img src={session.user.image} alt={session.user.name} className="w-full h-full object-cover" />
                             ) : (
@@ -66,22 +66,79 @@ export default function DashboardHeader() {
                             </span>
                         </div>
 
-                        {/* Dropdown Menu (Simplified for now) */}
-                        <div className="absolute top-full right-0 mt-2 w-48 bg-neutral-900 border border-neutral-800 rounded-xl shadow-2xl opacity-0 group-hover:opacity-100 pointer-events-none group-hover:pointer-events-auto transition-all transform translate-y-2 group-hover:translate-y-0 p-1">
-                            <button
-                                onClick={handleLogout}
-                                className="w-full flex items-center gap-2 px-3 py-2 text-sm text-red-400 hover:bg-red-500/10 rounded-lg transition-colors"
-                            >
-                                <LogOut size={16} />
-                                Sign Out
-                            </button>
+                        {/* Dropdown Menu (Premium UI) */}
+                        <div className="absolute top-full right-0 mt-3 w-64 bg-neutral-900/90 backdrop-blur-2xl border border-neutral-800 rounded-[24px] shadow-2xl opacity-0 group-hover:opacity-100 pointer-events-none group-hover:pointer-events-auto transition-all duration-300 transform translate-y-4 group-hover:translate-y-0 p-2 z-[60] before:content-[''] before:absolute before:-top-3 before:left-0 before:w-full before:h-3">
+                            {/* User Header Insight */}
+                            <div className="px-4 py-3 mb-2 bg-white/5 rounded-2xl border border-white/5">
+                                <p className="text-[10px] font-black uppercase tracking-[0.2em] text-neutral-500 mb-1">Active Session</p>
+                                <p className="text-xs font-bold text-white truncate">{session.user.email}</p>
+                            </div>
+
+                            <div className="space-y-1">
+                                <p className="px-3 pt-2 pb-1 text-[9px] font-black uppercase tracking-[0.2em] text-neutral-600">Workplace</p>
+                                <button className="w-full flex items-center justify-between px-3 py-2.5 text-xs font-bold text-neutral-300 hover:text-white hover:bg-white/5 rounded-xl transition-all group/item">
+                                    <div className="flex items-center gap-3">
+                                        <div className="w-8 h-8 rounded-lg bg-blue-500/10 flex items-center justify-center text-blue-500 group-hover/item:scale-110 transition-transform">
+                                            <Users size={16} />
+                                        </div>
+                                        <span>Manage Team</span>
+                                    </div>
+                                    <ChevronDown size={14} className="-rotate-90 opacity-0 group-hover/item:opacity-100 transition-all" />
+                                </button>
+                                <button
+                                    onClick={() => router.push("/settings/workspace")}
+                                    className="w-full flex items-center justify-between px-3 py-2.5 text-xs font-bold text-neutral-300 hover:text-white hover:bg-white/5 rounded-xl transition-all group/item"
+                                >
+                                    <div className="flex items-center gap-3">
+                                        <div className="w-8 h-8 rounded-lg bg-indigo-500/10 flex items-center justify-center text-indigo-500 group-hover/item:scale-110 transition-transform">
+                                            <Settings size={16} />
+                                        </div>
+                                        <span>Workspace Settings</span>
+                                    </div>
+                                    <ChevronDown size={14} className="-rotate-90 opacity-0 group-hover/item:opacity-100 transition-all" />
+                                </button>
+                            </div>
+
+                            <div className="my-2 border-t border-neutral-800/50" />
+
+                            <div className="space-y-1">
+                                <p className="px-3 pt-2 pb-1 text-[9px] font-black uppercase tracking-[0.2em] text-neutral-600">Account</p>
+                                <button className="w-full flex items-center justify-between px-3 py-2.5 text-xs font-bold text-neutral-300 hover:text-white hover:bg-white/5 rounded-xl transition-all group/item">
+                                    <div className="flex items-center gap-3">
+                                        <div className="w-8 h-8 rounded-lg bg-neutral-800 flex items-center justify-center text-neutral-400 group-hover/item:scale-110 transition-transform">
+                                            <UserIcon size={16} />
+                                        </div>
+                                        <span>Personal Profile</span>
+                                    </div>
+                                </button>
+                                <button className="w-full flex items-center justify-between px-3 py-2.5 text-xs font-bold text-neutral-300 hover:text-white hover:bg-white/5 rounded-xl transition-all group/item">
+                                    <div className="flex items-center gap-3">
+                                        <div className="w-8 h-8 rounded-lg bg-yellow-500/10 flex items-center justify-center text-yellow-500 group-hover/item:scale-110 transition-transform">
+                                            <Sparkles size={16} />
+                                        </div>
+                                        <span>Subscription Plan</span>
+                                    </div>
+                                </button>
+                            </div>
+
+                            <div className="mt-4 pt-1">
+                                <button
+                                    onClick={handleLogout}
+                                    className="w-full flex items-center gap-3 px-3 py-3 text-xs font-bold text-red-400 hover:bg-red-500/10 rounded-xl transition-colors active:scale-[0.98]"
+                                >
+                                    <div className="w-8 h-8 rounded-lg bg-red-500/10 flex items-center justify-center">
+                                        <LogOut size={16} />
+                                    </div>
+                                    Sign Out from Studio
+                                </button>
+                            </div>
                         </div>
-                        <ChevronDown size={14} className="text-neutral-500 group-hover:text-white transition-colors" />
+                        <ChevronDown size={14} className="ml-1 text-neutral-500 group-hover:text-white transition-colors group-hover:rotate-180 duration-300" />
                     </div>
                 ) : (
                     <button
                         onClick={() => router.push("/auth")}
-                        className="bg-blue-600 hover:bg-blue-500 text-white px-5 py-2 rounded-xl text-sm font-bold transition-all shadow-lg shadow-blue-500/20"
+                        className="bg-blue-600 hover:bg-blue-500 text-white px-5 py-2 rounded-xl text-sm font-bold transition-all shadow-lg shadow-blue-500/20 active:scale-95"
                     >
                         Sign In
                     </button>

@@ -1,9 +1,10 @@
 import DashboardHeader from "@/components/dashboard/DashboardHeader";
 import NewProjectCard from "@/components/dashboard/NewProjectCard";
 import ProjectCard from "@/components/dashboard/ProjectCard";
-import { Sparkles, Layout } from "lucide-react";
+import { Sparkles, Layout, Camera, Briefcase, Palette, Image, Film, Settings } from "lucide-react";
 import { getProjects } from "@/app/actions/projects";
 import { auth } from "@/lib/auth";
+import prisma from "@/lib/prisma";
 import { headers } from "next/headers";
 import { redirect } from "next/navigation";
 
@@ -17,13 +18,28 @@ export default async function LibraryPage() {
   }
 
   // Redirect to onboarding if the user has no active organization
-  if (!session.session.activeOrganizationId) {
-    redirect("/onboarding");
+  let activeOrgId = session.session.activeOrganizationId;
+
+  if (!activeOrgId) {
+    // Check if the user has any organizations
+    const memberships = await prisma.member.findMany({
+      where: { userId: session.user.id },
+      take: 1
+    });
+
+    if (memberships.length === 0) {
+      redirect("/onboarding");
+    } else {
+      // Fallback to the first organization found
+      activeOrgId = memberships[0].organizationId;
+    }
   }
 
   let projects: any[] = [];
   try {
-    projects = await getProjects(session.user.id);
+    if (activeOrgId) {
+      projects = await getProjects(activeOrgId);
+    }
   } catch (error) {
     console.error("Failed to fetch projects server-side:", error);
   }
@@ -50,7 +66,7 @@ export default async function LibraryPage() {
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-            <NewProjectCard userId={session.user.id} />
+            <NewProjectCard userId={session.user.id} organizationId={activeOrgId ?? undefined} />
             {projects.length > 0 ? (
               projects.map((p) => (
                 <ProjectCard key={p.id} id={p.id} name={p.name} updatedAt={new Date(p.updatedAt).toLocaleDateString()} thumbnail={p.thumbnail} />
@@ -72,21 +88,29 @@ export default async function LibraryPage() {
 
           <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-6 gap-4">
             {[
-              { label: "Instagram", icon: "📸" },
-              { label: "LinkedIn", icon: "💼" },
-              { label: "Logo", icon: "🎨" },
-              { label: "Posters", icon: "🖼️" },
-              { label: "Banners", icon: "🎞️" },
-              { label: "Custom", icon: "⚙️" },
-            ].map((cat) => (
-              <button
-                key={cat.label}
-                className="bg-neutral-900 border border-neutral-800 p-4 rounded-2xl flex flex-col items-center gap-3 hover:border-blue-500/40 hover:bg-blue-500/5 transition-all group"
-              >
-                <span className="text-2xl group-hover:scale-110 transition-transform">{cat.icon}</span>
-                <span className="text-[10px] font-black uppercase tracking-widest text-neutral-400 group-hover:text-blue-400 transition-colors">{cat.label}</span>
-              </button>
-            ))}
+              { label: "Instagram", icon: "Camera", color: "text-pink-500", bg: "bg-pink-500/10" },
+              { label: "LinkedIn", icon: "Briefcase", color: "text-blue-500", bg: "bg-blue-500/10" },
+              { label: "Logo", icon: "Palette", color: "text-purple-500", bg: "bg-purple-500/10" },
+              { label: "Posters", icon: "Image", color: "text-orange-500", bg: "bg-orange-500/10" },
+              { label: "Banners", icon: "Film", color: "text-red-500", bg: "bg-red-500/10" },
+              { label: "Custom", icon: "Settings", color: "text-neutral-500", bg: "bg-neutral-500/10" },
+            ].map((cat) => {
+              const IconComponent = require("lucide-react")[cat.icon];
+              return (
+                <button
+                  key={cat.label}
+                  className="bg-neutral-900 border border-neutral-800 p-6 rounded-2xl flex flex-col items-center gap-4 hover:border-blue-500/40 hover:bg-blue-500/5 transition-all group relative overflow-hidden active:scale-95"
+                >
+                  <div className={`w-12 h-12 ${cat.bg} rounded-xl flex items-center justify-center ${cat.color} group-hover:scale-110 transition-transform duration-300`}>
+                    <IconComponent size={24} />
+                  </div>
+                  <span className="text-[10px] font-black uppercase tracking-widest text-neutral-400 group-hover:text-blue-400 transition-colors">{cat.label}</span>
+
+                  {/* Subtle hover glow */}
+                  <div className="absolute inset-0 bg-blue-500/5 opacity-0 group-hover:opacity-100 transition-opacity" />
+                </button>
+              );
+            })}
           </div>
         </section>
       </div>

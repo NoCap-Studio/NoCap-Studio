@@ -44,7 +44,7 @@ export default function Topbar() {
         <button
           onClick={undo}
           disabled={isUndoDisabled}
-          className="p-1.5 hover:bg-neutral-800 rounded-lg text-neutral-400 hover:text-white disabled:opacity-30 disabled:cursor-not-allowed transition-all"
+          className="p-1.5 hover:bg-neutral-800 rounded-lg text-neutral-400 hover:text-white disabled:opacity-30 disabled:cursor-not-allowed transition-all active:scale-90"
           title="Undo (Ctrl+Z)"
         >
           <Undo2 size={18} />
@@ -52,7 +52,7 @@ export default function Topbar() {
         <button
           onClick={redo}
           disabled={isRedoDisabled}
-          className="p-1.5 hover:bg-neutral-800 rounded-lg text-neutral-400 hover:text-white disabled:opacity-30 disabled:cursor-not-allowed transition-all"
+          className="p-1.5 hover:bg-neutral-800 rounded-lg text-neutral-400 hover:text-white disabled:opacity-30 disabled:cursor-not-allowed transition-all active:scale-90"
           title="Redo (Ctrl+Y)"
         >
           <Redo2 size={18} />
@@ -74,10 +74,10 @@ export default function Topbar() {
       </div>
 
       <div className="flex items-center gap-3">
-        <button className="px-4 py-1.5 rounded-lg bg-neutral-800 text-white text-sm font-medium hover:bg-neutral-700 transition-all border border-neutral-700">
+        <button className="px-4 py-1.5 rounded-lg bg-neutral-800 text-white text-sm font-medium hover:bg-neutral-700 transition-all border border-neutral-700 active:scale-95">
           Share
         </button>
-        <button className="px-4 py-1.5 rounded-lg bg-blue-600 text-white text-sm font-bold hover:bg-blue-500 transition-all shadow-lg shadow-blue-900/20">
+        <button className="px-4 py-1.5 rounded-lg bg-blue-600 text-white text-sm font-bold hover:bg-blue-500 transition-all shadow-lg shadow-blue-900/20 active:scale-95">
           Export
         </button>
       </div>
