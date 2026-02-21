@@ -15,14 +15,14 @@ export default function UploadsPanel() {
     const fileInputRef = useRef<HTMLInputElement>(null);
 
     useEffect(() => {
-        if (session) {
+        if (session?.session.activeOrganizationId) {
             const fetchAssets = async () => {
-                const dbAssets = await getAssets(session.user.id);
+                const dbAssets = await getAssets(session.session.activeOrganizationId!);
                 setAssets(dbAssets);
             };
             fetchAssets();
         }
-    }, [session, setAssets]);
+    }, [session?.session.activeOrganizationId, setAssets]);
 
     const { startUpload } = useUploadThing("imageUploader", {
         onClientUploadComplete: async (res) => {
@@ -30,6 +30,7 @@ export default function UploadsPanel() {
                 try {
                     const newAsset = await createAsset({
                         userId: session.user.id,
+                        organizationId: session.session.activeOrganizationId || "",
                         url: res[0].url,
                         name: res[0].name,
                         size: res[0].size,
