@@ -1,4 +1,3 @@
-
 generator client {
   provider = "prisma-client-js"
 }
@@ -38,8 +37,8 @@ model Session {
 
   activeOrganizationId String?
 
-  @@map("session")
   @@index([userId])
+  @@map("session")
 }
 
 model Account {
@@ -58,8 +57,8 @@ model Account {
   createdAt             DateTime  @default(now())
   updatedAt             DateTime  @updatedAt
 
-  @@map("account")
   @@index([userId])
+  @@map("account")
 }
 
 model Verification {
@@ -70,35 +69,41 @@ model Verification {
   createdAt  DateTime @default(now())
   updatedAt  DateTime @updatedAt
 
-  @@map("verification")
   @@index([identifier])
+  @@map("verification")
 }
 
 model Project {
-  id        String   @id @default(uuid())
-  name      String
-  content   String   @db.Text
-  thumbnail String?
-  userId    String
-  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  id             String       @id @default(uuid())
+  name           String
+  content        String       @db.Text
+  thumbnail      String?
+  userId         String
+  user           User         @relation(fields: [userId], references: [id], onDelete: Cascade)
+  organizationId String
+  organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  createdAt      DateTime     @default(now())
+  updatedAt      DateTime     @updatedAt
 
   @@index([userId])
+  @@index([organizationId])
 }
 
 model Asset {
-  id        String   @id @default(uuid())
-  url       String
-  name      String?
-  size      Int?
-  type      String?
-  userId    String
-  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  id             String       @id @default(uuid())
+  url            String
+  name           String?
+  size           Int?
+  type           String?
+  userId         String
+  user           User         @relation(fields: [userId], references: [id], onDelete: Cascade)
+  organizationId String
+  organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  createdAt      DateTime     @default(now())
+  updatedAt      DateTime     @updatedAt
 
   @@index([userId])
+  @@index([organizationId])
 }
 
 model Organization {
@@ -110,8 +115,10 @@ model Organization {
   updatedAt   DateTime     @updatedAt
   members     Member[]
   invitations Invitation[]
+  projects    Project[]
+  assets      Asset[]
 
-  metadata String?
+  metadata Json?
 
   @@map("organization")
 }
@@ -126,9 +133,9 @@ model Member {
   userId         String
   user           User         @relation(fields: [userId], references: [id], onDelete: Cascade)
 
-  @@map("member")
   @@index([organizationId])
   @@index([userId])
+  @@map("member")
 }
 
 model Invitation {
@@ -145,7 +152,7 @@ model Invitation {
 
   status String @default("pending")
 
-  @@map("invitation")
   @@index([organizationId])
   @@index([email])
+  @@map("invitation")
 }

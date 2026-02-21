@@ -23,7 +23,10 @@ function EditorContent() {
     }
 
     if (session && !session.session.activeOrganizationId) {
-      router.push("/onboarding");
+      // We check if they have any organizations they belong to
+      // Instead of an expensive client-side check here, we can just allow the page to load
+      // The DashboardHeader or server-side checks will handle the fallback or redirection if truly necessary
+      // This prevents the "flash" or incorrect redirect during logout/login transitions
       return;
     }
 

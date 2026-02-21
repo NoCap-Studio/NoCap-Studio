@@ -41,9 +41,14 @@ export default function Sidebar() {
           {activeTab === "Uploads" && <UploadsPanel />}
 
           {(activeTab === "Templates" || activeTab === "Text" || activeTab === "Elements") && (
-            <div className="flex-1 flex flex-col items-center justify-center py-12 text-neutral-600 text-center px-4 border-t border-neutral-800 mt-6 pt-6">
+            <div className="flex-1 flex flex-col items-center justify-center py-12 text-neutral-600 text-center px-4 mt-6 animate-in fade-in slide-in-from-bottom-4 duration-500">
+              <div className="w-16 h-16 bg-neutral-800/50 rounded-2xl flex items-center justify-center mb-4 border border-neutral-800">
+                <Component size={32} className="text-neutral-700" />
+              </div>
               <h3 className="text-sm font-bold text-white uppercase tracking-wider mb-2">{activeTab}</h3>
-              <p className="text-[11px] font-medium leading-tight opacity-40">Coming soon in the next update!</p>
+              <p className="text-[11px] font-medium leading-tight text-neutral-500 max-w-[150px]">
+                We're crafting something special. Coming soon in the next update!
+              </p>
             </div>
           )}
         </div>

@@ -7,18 +7,19 @@ import { useState } from "react";
 
 interface NewProjectCardProps {
     userId?: string;
+    organizationId?: string;
 }
 
-export default function NewProjectCard({ userId }: NewProjectCardProps) {
+export default function NewProjectCard({ userId, organizationId }: NewProjectCardProps) {
     const router = useRouter();
     const [isCreating, setIsCreating] = useState(false);
 
     const handleCreate = async () => {
-        if (!userId || isCreating) return;
+        if (!userId || !organizationId || isCreating) return;
 
         setIsCreating(true);
         try {
-            const project = await createProject(userId, "Untitled Project");
+            const project = await createProject(userId, organizationId, "Untitled Project");
             router.push(`/editor?id=${project.id}`);
         } catch (error) {
             console.error("Failed to create project:", error);

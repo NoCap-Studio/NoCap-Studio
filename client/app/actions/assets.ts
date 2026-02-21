@@ -3,10 +3,10 @@
 import prisma from "@/lib/prisma";
 import { revalidatePath } from "next/cache";
 
-export async function getAssets(userId: string) {
+export async function getAssets(organizationId: string) {
     try {
         return await prisma.asset.findMany({
-            where: { userId },
+            where: { organizationId },
             orderBy: { createdAt: "desc" },
         });
     } catch (error) {
@@ -15,7 +15,7 @@ export async function getAssets(userId: string) {
     }
 }
 
-export async function createAsset(data: { userId: string; url: string; name?: string; size?: number; type?: string }) {
+export async function createAsset(data: { userId: string; organizationId: string; url: string; name?: string; size?: number; type?: string }) {
     try {
         const asset = await prisma.asset.create({
             data,
