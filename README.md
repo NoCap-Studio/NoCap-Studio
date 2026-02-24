@@ -12,21 +12,25 @@
 ## ✨ Features
 
 ### 🛠️ Professional Workspace
+
 - **Premium Dark Mode**: A sleek, focused environment with a professional editor grid.
 - **Floating Toolbars**: Interaction-focused UI using glassmorphism (`backdrop-blur`) and smooth transitions.
 - **Dynamic Viewport**: Context-aware zooming (10% to 500%) relative to the mouse pointer, with a one-click "Reset View" safety button.
 
 ### 📜 Creative Tools
+
 - **Rich Shape Library**: Add Rectangles, Circles, Triangles, and Lines with built-in metadata detection.
 - **Advanced Text Engine**: Interactive text boxes with customizable fonts (Inter, Arial, etc.) and sizes.
 - **Contextual Properties Menu**: A smart menu that appears upon selection to edit colors, sizes, and font properties in real-time.
 
 ### 🗂️ Layer Management
+
 - **Layers Panel**: A dedicated sidebar to view, select, and reorder objects.
 - **Depth Control**: Easily bring objects forward or send them to the back.
 - **Visibility Toggle**: Hide/Show layers instantly without deleting them.
 
 ### 🚀 Power User Capabilities
+
 - **Undo/Redo System**: Full history snapshots with keyboard shortcuts (`Ctrl+Z`, `Ctrl+Shift+Z` / `Ctrl+Y`).
 - **Full Persistence**: Your designs are automatically saved to `localStorage`. Refresh or close your browser, and your work stays exactly where you left it.
 - **High-Res Export**: Download your finished designs as high-resolution PNGs (2x multiplier) with a clean white background.
@@ -46,34 +50,39 @@
 ## 🚀 Getting Started
 
 ### Prerequisites
+
 - Node.js 18.x or later
 - npm or pnpm
 
 ### Installation
 
 1. Clone the repository:
+
    ```bash
    git clone https://github.com/your-username/nocap-studio.git
    cd nocap-studio
    ```
 
 2. Install dependencies:
+
    ```bash
    npm install
    ```
 
 3. Set up environment variables:
    Create a `.env.local` file in the `client` directory:
+
    ```env
    UPLOADTHING_TOKEN=your_uploadthing_token_here
    ```
 
 4. Start the development server:
+
    ```bash
    npm run dev
    ```
 
-4. Open [http://localhost:3000](http://localhost:3000) in your browser.
+5. Open [http://localhost:3000](http://localhost:3000) in your browser.
 
 ---
 
